@@ -31,6 +31,8 @@ typedef MDC2250* pMDC2250;
 
 typedef std::map<std::string, std::string> ENCODER;
 
+bool _estopped;
+
 ENCODER enc[2];
 pMDC2250 mc[2];
 bool enc_init[2][3];
@@ -402,20 +404,24 @@ void raw_callback2(const mdc2250::MotorRaw::ConstPtr& msg) {
 void SetEStop(bool status)
 {
 	for (int i=0;i<NUM_VALID_CONTROLLER_PORTS;i++){
-		if (status)
+		if (status) {
 			mc[i]->estop();
-		else {
+			ROS_INFO("STOP IT!");
+		} else {
+			ROS_INFO("ZOOM ZOOM!");
 			mc[i]->clearEstop();
 			init(mc[i]);
 		}
 	}
 	static std_msgs::Bool b;
 	b.data=status;
+	_estopped = status;
 	estoppub.publish(b);
 }
 
 void estopsub_callback(const std_msgs::Bool::ConstPtr& msg)
 {
+	ROS_WARN("HOLY CRAP I RECEIVED A MESSAGE SETTING ESTOP TO: %s", msg->data ? "ON!!!!!" : "OFFFFFFFFFF");
 	SetEStop(msg->data);
 }
 
@@ -555,18 +561,6 @@ int main(int argc, char **argv) {
 				ROS_ERROR("SOME exception occured while connecting to the MDC2250[%d]: %s", i, e.what());
 				erroroccurred = true;
 			}
-    	}
-    	if (!erroroccurred && isConnected())
-    	{
-			bool estopped = false;
-			for(int i=0;i<NUM_VALID_CONTROLLER_PORTS;i++)
-				estopped |= mc[i]->isEstopped();
-			std_msgs::Bool b;
-			b.data = estopped;
-			estoppub.publish(b);
-			for(int i=0;i<NUM_VALID_CONTROLLER_PORTS;i++)
-				lasttick[i]=ros::Time::now();
-			erroroccurred = false;
     	}
     	bool conly = configonly;
     	bool err = erroroccurred;
