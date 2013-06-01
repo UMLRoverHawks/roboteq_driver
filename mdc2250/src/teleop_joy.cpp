@@ -30,6 +30,8 @@
 #include <ros/ros.h>
 #include <geometry_msgs/Twist.h>
 #include <sensor_msgs/Joy.h>
+#include <std_msgs/Bool.h>
+#include "sample_acquisition/ArmMovement.h"
 #include "boost/thread/mutex.hpp"
 #include "boost/thread/thread.hpp"
 #include "ros/console.h"
@@ -45,9 +47,11 @@ private:
 
   ros::NodeHandle ph_, nh_;
 
-  int linear_, angular_, deadman_axis_;
+  int linear_, angular_, pan_, tilt_, gripper_, arm_disengage_, deadman_axis_;
   double l_scale_, a_scale_;
   ros::Publisher vel_pub_;
+  ros::Publisher arm_pub;
+  ros::Publisher arm_engage_pub;
   ros::Subscriber joy_sub_;
 
   geometry_msgs::Twist last_published_;
@@ -61,6 +65,10 @@ TeleopJoy::TeleopJoy():
   ph_("~"),
   linear_(1),
   angular_(0),
+  pan_(2),
+  tilt_(3),
+  gripper_(7),
+  arm_disengage_(11),
   deadman_axis_(4),
   l_scale_(0.3),
   a_scale_(0.9),
@@ -68,26 +76,48 @@ TeleopJoy::TeleopJoy():
 {
   ph_.param("axis_linear", linear_, linear_);
   ph_.param("axis_angular", angular_, angular_);
+  ph_.param("axis_pan", pan_, pan_);
+  ph_.param("axis_tilt", tilt_, tilt_);
+  ph_.param("button_gripper", gripper_, gripper_);
+  ph_.param("button_disengage_arm", arm_disengage_, arm_disengage_);
   ph_.param("axis_deadman", deadman_axis_, deadman_axis_);
   ph_.param("scale_angular", a_scale_, a_scale_);
   ph_.param("scale_linear", l_scale_, l_scale_);
-
   vel_pub_ = nh_.advertise<geometry_msgs::Twist>("cmd_vel", 1);
+  arm_pub = nh_.advertise<sample_acquisition::ArmMovement>("/arm/movement", 1);
+  arm_engage_pub = nh_.advertise<std_msgs::Bool>("/arm/on", 1);
   joy_sub_ = nh_.subscribe<sensor_msgs::Joy>("joy", 10, &TeleopJoy::joyCallback, this);
 
   timer_ = nh_.createTimer(ros::Duration(0.1), boost::bind(&TeleopJoy::publish, this));
 }
 
 void TeleopJoy::joyCallback(const sensor_msgs::Joy::ConstPtr& joy)
-{ 
+{
+  std_msgs::Bool arm_engage_msg;
+  sample_acquisition::ArmMovement arm_msg;
   geometry_msgs::Twist vel;
   vel.angular.z = a_scale_*joy->axes[angular_];
   vel.linear.x = l_scale_*joy->axes[linear_];
+  if  (joy->axes[pan_] != 0 || joy->axes[tilt_] != 0 || joy->buttons[gripper_] !=0)
+  {
+	arm_engage_msg.data = true;
+	arm_engage_pub.publish(arm_engage_msg);
+	arm_msg.pan_motor_velocity =  joy->axes[pan_];
+	arm_msg.tilt_motor_velocity = joy->axes[tilt_];
+	arm_msg.gripper_open = joy->buttons[gripper_];
+  }
   last_published_ = vel;
   if (deadman_axis_ != -1)
     deadman_pressed_ = joy->buttons[deadman_axis_];
   else
     deadman_pressed_ = true;
+   if(joy->buttons[arm_disengage_] == 1)
+   {
+	   arm_engage_msg.data = false;
+	   arm_engage_pub.publish(arm_engage_msg);
+	   sleep(1);
+   }
+   arm_pub.publish(arm_msg);
 }
 
 void TeleopJoy::publish()
