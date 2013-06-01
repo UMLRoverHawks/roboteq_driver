@@ -406,9 +406,9 @@ void SetEStop(bool status)
 	for (int i=0;i<NUM_VALID_CONTROLLER_PORTS;i++){
 		if (status) {
 			mc[i]->estop();
-			ROS_INFO("STOP IT!");
+			ROS_INFO("Enabling ESTOP");
 		} else {
-			ROS_INFO("ZOOM ZOOM!");
+			ROS_INFO("Disabling ESTOP");
 			mc[i]->clearEstop();
 			init(mc[i]);
 		}
@@ -421,7 +421,6 @@ void SetEStop(bool status)
 
 void estopsub_callback(const std_msgs::Bool::ConstPtr& msg)
 {
-	ROS_WARN("HOLY CRAP I RECEIVED A MESSAGE SETTING ESTOP TO: %s", msg->data ? "ON!!!!!" : "OFFFFFFFFFF");
 	SetEStop(msg->data);
 }
 
