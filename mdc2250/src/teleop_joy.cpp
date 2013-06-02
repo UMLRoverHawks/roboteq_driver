@@ -67,8 +67,8 @@ TeleopJoy::TeleopJoy():
   angular_(0),
   pan_(2),
   tilt_(3),
-  gripper_(7),
-  arm_disengage_(11),
+  gripper_(5),
+  arm_disengage_(10),
   deadman_axis_(4),
   l_scale_(0.3),
   a_scale_(0.9),
@@ -78,7 +78,7 @@ TeleopJoy::TeleopJoy():
   ph_.param("axis_angular", angular_, angular_);
   ph_.param("axis_pan", pan_, pan_);
   ph_.param("axis_tilt", tilt_, tilt_);
-  ph_.param("button_gripper", gripper_, gripper_);
+  ph_.param("axis_gripper", gripper_, gripper_);
   ph_.param("button_disengage_arm", arm_disengage_, arm_disengage_);
   ph_.param("axis_deadman", deadman_axis_, deadman_axis_);
   ph_.param("scale_angular", a_scale_, a_scale_);
@@ -104,7 +104,7 @@ void TeleopJoy::joyCallback(const sensor_msgs::Joy::ConstPtr& joy)
 	arm_engage_pub.publish(arm_engage_msg);
 	arm_msg.pan_motor_velocity =  joy->axes[pan_];
 	arm_msg.tilt_motor_velocity = joy->axes[tilt_];
-	arm_msg.gripper_open = joy->buttons[gripper_];
+	arm_msg.gripper_open = (joy->axes[gripper_] <= 0);
   }
   last_published_ = vel;
   if (deadman_axis_ != -1)
