@@ -7,6 +7,7 @@
 #include "ros/ros.h"
 #include "std_msgs/Bool.h"
 #include "std_msgs/Float32.h"
+#include "std_msgs/String.h"
 #include "geometry_msgs/Twist.h"
 #include "nav_msgs/Odometry.h"
 #include <mdc2250/StampedEncoders.h>
@@ -45,6 +46,7 @@ float speed_coefficient = 1.0;
 
 int NUM_VALID_CONTROLLER_PORTS=2;
 ros::Publisher odom_pub;
+ros::Publisher telempub[2];
 ros::Publisher encoder_pub;
 ros::Publisher estoppub;
 ros::Publisher voltpub;
@@ -288,6 +290,9 @@ void encode(int left, int right) {
 }
 
 void telemetry_callback(int i, const std::string &telemetry) {
+        std_msgs::String s;
+	s.data = telemetry.c_str();
+        telempub[i].publish(s);
 	lasttick[i]=ros::Time::now();
 	//insert meat of tf math into one of these, or dump values in globals and have a thread crunch nubahz
 	std::vector<std::string> TandVal = split(telemetry, '=');
@@ -505,6 +510,9 @@ int main(int argc, char **argv) {
 	estoppub = n.advertise<std_msgs::Bool>("estopState", 1, true);
 
 	voltpub = n.advertise<std_msgs::Float32>("Voltage", 1);
+
+        telempub[0] = n.advertise<std_msgs::String>("mc1/telemetry", 1);
+        telempub[1] = n.advertise<std_msgs::String>("mc2/telemetry", 1);
 
 	// cmd_vel Subscriber
 	ros::Subscriber sub = n.subscribe("cmd_vel", 1, cmd_velCallback);
