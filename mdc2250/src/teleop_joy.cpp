@@ -47,13 +47,13 @@ private:
 
   ros::NodeHandle ph_, nh_;
 
-  int linear_, angular_, pan_, tilt_, gripper_, arm_disengage_, deadman_axis_;
+  int linear_, angular_, pan_, tilt_, gripper_, arm_disengage_, estop_on_, estop_off_, deadman_axis_;
   double l_scale_, a_scale_;
   ros::Publisher vel_pub_;
   ros::Publisher arm_pub;
   ros::Publisher arm_engage_pub;
+  ros::Publisher estop_pub;
   ros::Subscriber joy_sub_;
-
   geometry_msgs::Twist last_published_;
   boost::mutex publish_mutex_;
   bool deadman_pressed_;
@@ -69,6 +69,8 @@ TeleopJoy::TeleopJoy():
   tilt_(3),
   gripper_(7),
   arm_disengage_(11),
+  estop_on_(4),
+  estop_off_(6),
   deadman_axis_(4),
   l_scale_(0.3),
   a_scale_(0.9),
@@ -80,12 +82,15 @@ TeleopJoy::TeleopJoy():
   ph_.param("axis_tilt", tilt_, tilt_);
   ph_.param("button_gripper", gripper_, gripper_);
   ph_.param("button_disengage_arm", arm_disengage_, arm_disengage_);
+  ph_.param("button_estop_on", estop_on_, estop_on_);
+  ph_.param("button_estop_off", estop_off_, estop_off_);
   ph_.param("axis_deadman", deadman_axis_, deadman_axis_);
   ph_.param("scale_angular", a_scale_, a_scale_);
   ph_.param("scale_linear", l_scale_, l_scale_);
   vel_pub_ = nh_.advertise<geometry_msgs::Twist>("cmd_vel", 1);
   arm_pub = nh_.advertise<sample_acquisition::ArmMovement>("/arm/movement", 1);
   arm_engage_pub = nh_.advertise<std_msgs::Bool>("/arm/on", 1);
+  estop_pub = nh_.advertise<std_msgs::Bool>("setEstop", 1);
   joy_sub_ = nh_.subscribe<sensor_msgs::Joy>("joy", 10, &TeleopJoy::joyCallback, this);
 
   timer_ = nh_.createTimer(ros::Duration(0.1), boost::bind(&TeleopJoy::publish, this));
@@ -94,6 +99,7 @@ TeleopJoy::TeleopJoy():
 void TeleopJoy::joyCallback(const sensor_msgs::Joy::ConstPtr& joy)
 {
   std_msgs::Bool arm_engage_msg;
+  std_msgs::Bool estop_msg;
   sample_acquisition::ArmMovement arm_msg;
   geometry_msgs::Twist vel;
   vel.angular.z = a_scale_*joy->axes[angular_];
@@ -117,12 +123,20 @@ void TeleopJoy::joyCallback(const sensor_msgs::Joy::ConstPtr& joy)
 	   arm_engage_pub.publish(arm_engage_msg);
 	   sleep(1);
    }
-   arm_pub.publish(arm_msg);
+   if(joy->buttons[estop_on_] == 1)
+   {
+      estop_msg.data = true;
+   }
+   if(joy->buttons[estop_off_] == 1)
+   {
+      estop_msg.data = false;
+   }
 }
 
 void TeleopJoy::publish()
 {
   boost::mutex::scoped_lock lock(publish_mutex_);
+  arm_pub.publish(arm_msg);
 
   if (deadman_pressed_)
   {
