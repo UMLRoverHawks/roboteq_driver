@@ -115,11 +115,10 @@ void TeleopJoy::joyCallback(const sensor_msgs::Joy::ConstPtr& joy)
 	arm_msg.gripper_open = (joy->axes[gripper_] <= 0);
   }
   last_published_ = vel;
-  /*if (deadman_axis_ != -1)
+  if (deadman_axis_ != -1)
     deadman_pressed_ = joy->buttons[deadman_axis_];
   else
     deadman_pressed_ = true;
-  */
    if(joy->buttons[arm_disengage_] == 1)
    {
 	   arm_engage_msg.data = false;
@@ -140,13 +139,13 @@ void TeleopJoy::joyCallback(const sensor_msgs::Joy::ConstPtr& joy)
 
 void TeleopJoy::publish()
 {
-  boost::mutex::scoped_lock lock(publish_mutex_);
   arm_pub.publish(arm_msg);
+  boost::mutex::scoped_lock lock(publish_mutex_);
 
-  //if (deadman_pressed_)
-  //{
-  //  vel_pub_.publish(last_published_);
-  //}
+  if (deadman_pressed_)
+  {
+    vel_pub_.publish(last_published_);
+  }
 
 }
 int main(int argc, char** argv)
