@@ -518,10 +518,8 @@ void MDC2250::detect_emergency_stop_() {
   }
   if (estop_res.find("16") != std::string::npos) {
     this->estop_ = true;
-    this->info("Estop is enabled.");
   } else {
     this->estop_ = false;
-    this->info("Estop is disabled.");
   }
 }
 
