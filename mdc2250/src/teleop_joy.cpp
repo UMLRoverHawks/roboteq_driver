@@ -91,9 +91,9 @@ TeleopJoy::TeleopJoy():
   arm_pub = nh_.advertise<sample_acquisition::ArmMovement>("/arm/movement", 1);
   arm_engage_pub = nh_.advertise<std_msgs::Bool>("/arm/on", 1);
   estop_pub = nh_.advertise<std_msgs::Bool>("setEstop", 1);
-  joy_sub_ = nh_.subscribe<sensor_msgs::Joy>("joy", 10, &TeleopJoy::joyCallback, this);
+  joy_sub_ = nh_.subscribe<sensor_msgs::Joy>("joy", 1, &TeleopJoy::joyCallback, this);
 
-  timer_ = nh_.createTimer(ros::Duration(0.1), boost::bind(&TeleopJoy::publish, this));
+  timer_ = nh_.createTimer(ros::Duration(0.01), boost::bind(&TeleopJoy::publish, this));
 }
 
 void TeleopJoy::joyCallback(const sensor_msgs::Joy::ConstPtr& joy)
@@ -111,8 +111,8 @@ void TeleopJoy::joyCallback(const sensor_msgs::Joy::ConstPtr& joy)
 	  arm_engage_pub.publish(arm_engage_msg);
 	}
         arm_msg.pan_motor_velocity =  joy->axes[pan_];
-	arm_msg.tilt_motor_velocity = joy->axes[tilt_];
-	arm_msg.gripper_open = (joy->axes[gripper_] <= 0);
+    	arm_msg.tilt_motor_velocity = joy->axes[tilt_];
+	    arm_msg.gripper_open = (joy->axes[gripper_] <= 0);
   }
   last_published_ = vel;
   if (deadman_axis_ != -1)

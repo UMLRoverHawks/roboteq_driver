@@ -508,7 +508,9 @@ int main(int argc, char **argv) {
 	odom_broadcaster = new tf::TransformBroadcaster;
 
 	estoppub = n.advertise<std_msgs::Bool>("estopState", 1, true);
-
+	std_msgs::Bool b;
+	b.data = true;
+	estoppub.publish(b);
 	voltpub = n.advertise<std_msgs::Float32>("Voltage", 1);
 
         telempub[0] = n.advertise<std_msgs::String>("mc1/telemetry", 1);
