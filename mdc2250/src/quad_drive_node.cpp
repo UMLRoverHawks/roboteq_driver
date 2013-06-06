@@ -24,7 +24,7 @@
 #include <mdc2250/mdc2250.h>
 
 #define ENCODER_CPR 360                //  360 clicks / rotation encoders
-unsigned int ENCODER_RPM_AT_1000_EFFORT = 120; //  ~2 m/s
+unsigned int ENCODER_RPM_AT_1000_EFFORT = 150; //  ~2 m/s
 
 using namespace mdc2250;
 
