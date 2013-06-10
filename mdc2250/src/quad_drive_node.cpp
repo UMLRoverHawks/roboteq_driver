@@ -388,7 +388,7 @@ void init(MDC2250 *m)
 		for(int i=0;i<3;i++)
 			enc_init[(m==mc[0]?0:1)][i]=false;
 		enc[m==mc[0]?0:1].clear();
-		m->setTelemetry("C,V,A,T,S,E,F", period, m == mc[0] ? telemetry_callback1 : telemetry_callback2);
+		m->setTelemetry("C,V,A,BA,T,S", period, m == mc[0] ? telemetry_callback1 : telemetry_callback2);
 		lasttick[m==mc[0]?0:1] = ros::Time::now();
 	/*}
 	catch(std::exception &e) { 	ROS_ERROR("%s", e.what()); 	}*/
