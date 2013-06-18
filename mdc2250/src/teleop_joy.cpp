@@ -92,8 +92,6 @@ TeleopJoy::TeleopJoy():
   arm_engage_pub = nh_.advertise<std_msgs::Bool>("/arm/on", 1);
   estop_pub = nh_.advertise<std_msgs::Bool>("setEstop", 1);
   joy_sub_ = nh_.subscribe<sensor_msgs::Joy>("joy", 1, &TeleopJoy::joyCallback, this);
-
-  timer_ = nh_.createTimer(ros::Duration(0.01), boost::bind(&TeleopJoy::publish, this));
 }
 
 void TeleopJoy::joyCallback(const sensor_msgs::Joy::ConstPtr& joy)
@@ -141,18 +139,14 @@ void TeleopJoy::joyCallback(const sensor_msgs::Joy::ConstPtr& joy)
       estop_msg.data = false;
       estop_pub.publish(estop_msg);
    }
-}
 
-void TeleopJoy::publish()
-{
   arm_pub.publish(arm_msg);
-
   if (deadman_pressed_)
   {
     vel_pub_.publish(last_published_);
   }
-
 }
+
 int main(int argc, char** argv)
 {
   ros::init(argc, argv, "teleop_joy");
