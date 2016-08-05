@@ -58,16 +58,16 @@ namespace constants {
 
 typedef enum
 {
-	openloop=1,
-	closedloop_speed=2,
-	closedloop_position=3
+  openloop=1,
+  closedloop_speed=2,
+  closedloop_position=3
 } COMMAND_MODE;
 
 typedef enum
 {
-	unused=0,
-	feedback=1,
-	command=2
+  unused=0,
+  feedback=1,
+  command=2
 } ENCODER_USAGE;
 
 }

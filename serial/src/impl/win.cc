@@ -57,7 +57,7 @@ Serial::SerialImpl::open ()
 
   if (fd_ == INVALID_HANDLE_VALUE) {
     DWORD errno_ = GetLastError();
-	stringstream ss;
+    stringstream ss;
     switch (errno_) {
     case ERROR_FILE_NOT_FOUND:
       ss << "Specified port, " << port_ << ", does not exist.";
