@@ -26,7 +26,7 @@
 #include <mach/mach.h>
 #endif
 
-#include "serial/impl/unix.h"
+#include <serial/impl/unix.h>
 
 #ifndef TIOCINQ
 #ifdef FIONREAD
@@ -492,8 +492,8 @@ Serial::SerialImpl::read (uint8_t *buf, size_t size)
         // read should always return some data as select reported it was
         // ready to read when we get to this point.
         if (bytes_read_now == 0) {
-        	//don't sweat the petty things and don't pet the sweaty things
-        	break;
+          //don't sweat the petty things and don't pet the sweaty things
+          break;
         }
         if (bytes_read_now < 0) {
           // Disconnected devices, at least on Linux, show the
